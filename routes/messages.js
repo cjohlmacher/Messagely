@@ -40,6 +40,7 @@ router.get('/:id', ensureLoggedIn, async (req,res,next) => {
 router.post('/', ensureLoggedIn, async (req,res,next) => {
     const { to_username, body } = req.body;
     const response = await Message.create({from_username: req.user.username,to_username,body});
+    await Message.sendSMS(to_username);
     return res.json({message: response});
 });
 

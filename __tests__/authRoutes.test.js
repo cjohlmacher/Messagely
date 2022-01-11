@@ -37,6 +37,7 @@ describe("Auth Routes Test", function () {
 
       let token = response.body.token;
       expect(jwt.decode(token)).toEqual({
+        exp: expect.any(Number),
         username: "bob",
         iat: expect.any(Number)
       });
@@ -53,6 +54,7 @@ describe("Auth Routes Test", function () {
 
       let token = response.body.token;
       expect(jwt.decode(token)).toEqual({
+        exp: expect.any(Number),
         username: "test1",
         iat: expect.any(Number)
       });

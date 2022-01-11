@@ -1,7 +1,12 @@
 /** Message class for message.ly */
 
+const client = require("../db");
 const db = require("../db");
 const ExpressError = require("../expressError");
+const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || "ACTWILIO_ACCOUNT_SID";
+const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || "TWILIO_AUTH_TOKEN";
+const TWILIO_MESSAGING_SERVICE_SID = process.env.TWILIO_MESSAGING_SERVICE_SID || "TWILIO_MESSAGING_SERVICE_SID";
+const twilioClient = require('twilio')(TWILIO_ACCOUNT_SID,TWILIO_AUTH_TOKEN);
 
 
 /** Message on the site. */
@@ -95,7 +100,30 @@ class Message {
       read_at: m.read_at,
     };
   }
-}
+
+  /* Send SMS message using Twilio */
+  static async sendSMS(username) {
+    const results = await db.query(`
+      SELECT username, phone
+      FROM users
+      WHERE username = $1
+    `,[username]);
+    if (results.rows.length == 0) {
+      throw new ExpressError(`Could not find recipient ${username}`, 404);
+    }
+    const { phone } = results.rows[0];
+    if (phone == process.env.PHONE) {
+      console.log('Sending SMS...')
+      twilioClient.messages.create({
+        to: phone,
+        messagingServiceSid: TWILIO_MESSAGING_SERVICE_SID,
+        body: `You, ${username}, have received a message on Messagely App!`
+      }).then(message => console.log(message.sid))
+      .done();
+    };
+    return null;
+  };
+};
 
 
 module.exports = Message;
